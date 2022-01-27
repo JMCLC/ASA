@@ -14,8 +14,20 @@ typedef struct {
     std::vector<int> parents;
 } vertex;
 
+bool foundLoop = false;
 bool foundFirstVertex = false;
 bool foundSecondVertex = false;
+
+void loopCheck(std::vector<vertex> &graph, int currentValue, int objective) {
+    int numberOfParents = graph[currentValue].parents.size();
+    if (currentValue == objective) {
+        foundLoop = true;
+        return;
+    }
+    for (int i = 0; i < numberOfParents; i++) {
+        loopCheck(graph, graph[currentValue].parents[i], objective);
+    }
+}
 
 int initialize_graph(std::vector<vertex> &graph, std::vector<int> &graphInfo) {
     for (int i = 0; i < graphInfo[0]; i++) {
@@ -23,7 +35,7 @@ int initialize_graph(std::vector<vertex> &graph, std::vector<int> &graphInfo) {
         graph[i] = newVertex;
     }
     std::vector<int> currentConnection(2, -1);
-    int currentParentsSize;
+    //int currentParentsSize;
     int numberOfInput;
     for (int i = 0; i < graphInfo[1]; i++) {
         currentConnection[0] = -1;
@@ -37,12 +49,17 @@ int initialize_graph(std::vector<vertex> &graph, std::vector<int> &graphInfo) {
             std::cout << 0 << std::endl;
             return 0;
         }
-        currentParentsSize = graph[currentConnection[0] - 1].parents.size();
-        for (int i = 0; i < currentParentsSize; i++) {
-            if (graph[currentConnection[0] - 1].parents[i] == currentConnection[1] - 1) {
-                std::cout << 0 << std::endl;
-                return 0;
-            }
+        //currentParentsSize = graph[currentConnection[0] - 1].parents.size();
+        // for (int i = 0; i < currentParentsSize; i++) {
+        //     if (graph[currentConnection[0] - 1].parents[i] == currentConnection[1] - 1) {
+        //         std::cout << 0 << std::endl;
+        //         return 0;
+        //     }
+        // }
+        loopCheck(graph, currentConnection[0] - 1, currentConnection[1] - 1);
+        if (foundLoop == true) {
+            std::cout << 0 << std::endl;
+            return 0;
         }
         graph[currentConnection[1] - 1].parents.push_back(currentConnection[0] - 1);
     }
@@ -86,6 +103,7 @@ void Third_DFS(std::vector<vertex> &graph, std::vector<int> &answers, int curren
 
 void exercise(std::vector<vertex> &graph, std::vector<int> &subjects, int *size) {
     std::vector<int> answers(*size, 0);
+    int numberOfAnswers = 0;
     graph[subjects[0] - 1].visited = 1;
     First_DFS(graph, subjects[0] - 1, &subjects[1]);
     if (foundSecondVertex == true) {
@@ -99,24 +117,22 @@ void exercise(std::vector<vertex> &graph, std::vector<int> &subjects, int *size)
         std::cout << subjects[0] << " " << std::endl;
         return;
     }
-    for (int i = 0; i < *size; i++) {
+    for (int i = *size - 1; i >= 0; i--) {
         if (answers[i] == 1) {
             Third_DFS(graph, answers, i);
         }
     }
-    std::vector<int> finalAnswer;
     for (int i = 0; i < *size; i++) {
-        if (answers[i] == 1)
-            finalAnswer.push_back(graph[i].id);
+        if (answers[i] == 1) {
+            std::cout << graph[i].id << " ";
+            numberOfAnswers++;
+        }
     }
-    int answersSize = finalAnswer.size();
-    if (answersSize == 0)
+    if (numberOfAnswers == 0)
         std::cout << "-" << std::endl;
-    else {
-        for (int i = 0; i < answersSize; i++)
-            std::cout << finalAnswer[i] << " ";
+    else
         std::cout << std::endl;
-    }
+    return;
 }
 
 int main() {
